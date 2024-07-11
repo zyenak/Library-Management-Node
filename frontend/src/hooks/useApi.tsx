@@ -48,8 +48,8 @@ export const useApi = () => {
       setResponseData(response.data);
       return response.data;
     } catch (error: any) {
-      showBoundary(error);
-      throw error;
+    //   showBoundary(error);
+    //   throw error;
     }
   };
 
@@ -64,8 +64,8 @@ export const useApi = () => {
       setResponseData(response.data);
       return response.data;
     } catch (error: any) {
-      showBoundary(error);
-      throw error;
+    //   showBoundary(error);
+    //   throw error;
     }
   };
 

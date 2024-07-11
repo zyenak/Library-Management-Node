@@ -46,16 +46,24 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    await userModel.deleteUser(req.params.id);
+    const userId = req.params.id;
+
+    const user = await userModel.getUserById(userId);
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    await userModel.deleteUser(userId);
     res.json({ message: 'User deleted' });
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 
 export const changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { currentPassword, newPassword } = req.body;
@@ -92,3 +100,36 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
   }
 };
 
+
+export const validatePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const { currentPassword } = req.body;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    res.status(400).json({ message: 'User ID is missing' });
+    return;
+  }
+
+  try {
+    const user = await userModel.getUserById(userId);
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isMatch) {
+      res.status(400).json({ message: 'Current password is incorrect' });
+      return;
+    }
+    else {
+      res.status(200).json({ message: 'Current password is correct' });
+      return;
+    }
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

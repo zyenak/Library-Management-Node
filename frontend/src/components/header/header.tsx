@@ -19,11 +19,9 @@ import { ChangePasswordDialog } from "../change-password/change-password";
 import { useApi } from "../../hooks/useApi";
 import { useSnackbar } from "../../context/snackbar-context";
 
-
-
 const AppHeader: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const [openChangePasswordDialog, setOpenChangePasswordDialog] = useState(false); // State for Change Password dialog
+  const [openChangePasswordDialog, setOpenChangePasswordDialog] = useState(false);
   const { user, logoutUser } = useUser();
   const { showMessage } = useSnackbar();
   const { saveData } = useApi();
@@ -43,7 +41,7 @@ const AppHeader: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => 
 
   const handleChangePasswordClick = () => {
     setOpenChangePasswordDialog(true);
-    handleCloseUserMenu(); // Close user menu when Change Password is clicked
+    handleCloseUserMenu();
   };
 
   const handleCloseChangePasswordDialog = () => {
@@ -60,11 +58,10 @@ const AppHeader: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => 
   
       showMessage(data.message);
       handleCloseChangePasswordDialog();
-    } catch (error: any) {  // Type error as any
+    } catch (error: any) {
       showMessage(error.message || "Failed to change password");
     }
   };
-  
 
   return (
     <AppBar position="static">
@@ -130,12 +127,10 @@ const AppHeader: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => 
           </Box>
         </Toolbar>
       </Container>
-
-      {/* Change Password Dialog */}
       <ChangePasswordDialog
         open={openChangePasswordDialog}
         handleClose={handleCloseChangePasswordDialog}
-        handleSubmit={handleSubmitChangePassword} // Pass handleSubmit function
+        handleSubmit={handleSubmitChangePassword}
       />
     </AppBar>
   );

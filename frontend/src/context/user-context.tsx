@@ -160,10 +160,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const deleteUser = async (username: string) => {
+  const deleteUser = async (id: string) => {
     try {
-      await deleteData(`/users/${username}`);
-      setUsers((prevUsers) => prevUsers.filter((user) => user.username !== username));
+      await deleteData(`/users/${id}`);
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
       showMessage("User deleted successfully");
     } catch (error) {
       showMessage("Failed to delete user");

@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
               variant="contained"
               color="secondary"
               size="small"
-              onClick={() => handleDeleteUser(user.username)}
+              onClick={() => handleDeleteUser(user.id)}
             >
               Delete
             </Button>

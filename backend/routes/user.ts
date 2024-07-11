@@ -17,6 +17,7 @@ router.delete('/:id', adminMiddleware, (req: Request, res: Response) => {
 
 
 router.patch('/change-password', userController.changePassword);
+router.post('/validate-password', userController.validatePassword);
 
 
 export default router;
