@@ -1,0 +1,16 @@
+[
+  {
+    "isbn": "978-3-16-148410-1",
+    "name": "Book1",
+    "category": "Action",
+    "price": 79.99,
+    "quantity": 10
+  },
+  {
+    "isbn": "978-3-16-148410-0",
+    "name": "Introduction",
+    "category": "Action",
+    "price": 79.99,
+    "quantity": 10
+  }
+]
