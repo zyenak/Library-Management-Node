@@ -162,11 +162,12 @@ const Dashboard: React.FC = () => {
           )}
         </div>
       </div>
-
+      {books && (
       <CustomTable
         rows={books}
         columns={bookColumns}
       />
+      )}
 
       {user && !isAdmin && (
         <>
@@ -190,10 +191,12 @@ const Dashboard: React.FC = () => {
           <div className={`${classes.pageHeader} ${classes.mb2}`}>
             <Typography variant="h5">Users List</Typography>
           </div>
+          {users && (
           <CustomTable
             rows={users}
             columns={userColumns}
           />
+          )}
         </>
       )}
     </>

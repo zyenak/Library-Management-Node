@@ -1,6 +1,6 @@
+
 import { Request, Response } from 'express';
-import * as userModel from '../models/user';
-import { User } from '../models/user';
+import User from '../models/user';
 import { omit } from 'lodash';
 import bcrypt from 'bcryptjs';
 
@@ -11,8 +11,8 @@ interface AuthenticatedRequest extends Request {
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const users: User[] = await userModel.getAllUsers();
-    const usersWithoutPassword = users.map(user => omit(user, ['password']));
+    const users = await User.findAll();
+    const usersWithoutPassword = users.map(user => omit(user.get(), ['password']));
     res.json(usersWithoutPassword);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -22,9 +22,9 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 
 export const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = await userModel.getUserById(req.params.id);
+    const user = await User.findByPk(req.params.id);
     if (user) {
-      const userWithoutPassword = omit(user, ['password']);
+      const userWithoutPassword = omit(user.get(), ['password']);
       res.json(userWithoutPassword);
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -37,9 +37,8 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 
 export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const newUser: User = { id: Date.now().toString(), ...req.body };
-    await userModel.addUser(newUser);
-    const userWithoutPassword = omit(newUser, ['password']);
+    const newUser = await User.create(req.body);
+    const userWithoutPassword = omit(newUser.get(), ['password']);
     res.status(201).json(userWithoutPassword);
   } catch (error) {
     console.error('Error creating user:', error);
@@ -49,15 +48,13 @@ export const createUser = async (req: Request, res: Response): Promise<void> => 
 
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.params.id;
-
-    const user = await userModel.getUserById(userId);
+    const user = await User.findByPk(req.params.id);
     if (!user) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
 
-    await userModel.deleteUser(userId);
+    await user.destroy();
     res.json({ message: 'User deleted' });
   } catch (error) {
     console.error('Error deleting user:', error);
@@ -75,7 +72,7 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
   }
 
   try {
-    const user = await userModel.getUserById(userId);
+    const user = await User.findByPk(userId);
 
     if (!user) {
       res.status(404).json({ message: 'User not found' });
@@ -91,15 +88,14 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedNewPassword;
+    await user.save();
 
-    await userModel.updateUser(userId, user);
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Error changing password:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 
 export const validatePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { currentPassword } = req.body;
@@ -111,7 +107,7 @@ export const validatePassword = async (req: AuthenticatedRequest, res: Response)
   }
 
   try {
-    const user = await userModel.getUserById(userId);
+    const user = await User.findByPk(userId);
 
     if (!user) {
       res.status(404).json({ message: 'User not found' });
@@ -123,13 +119,13 @@ export const validatePassword = async (req: AuthenticatedRequest, res: Response)
     if (!isMatch) {
       res.status(400).json({ message: 'Current password is incorrect' });
       return;
-    }
-    else {
+    } else {
       res.status(200).json({ message: 'Current password is correct' });
       return;
     }
   } catch (error) {
-    console.error('Error changing password:', error);
+    console.error('Error validating password:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+

@@ -5,6 +5,7 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 import routes from './routes';
 import { bodyParser, requestLogger } from './middlewares';
+import sequelize from './config/db';
 
 const app = express();
 
@@ -25,6 +26,10 @@ app.use('/api', routes);
 const PORT = process.env.PORT || 4000;
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+sequelize.sync({ force: false }).then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}).catch((error) => {
+  console.error('Unable to connect to the database:', error);
 });
