@@ -28,7 +28,7 @@ export const getBookByISBN = async (req: Request, res: Response): Promise<void> 
 export const addBook = async (req: Request, res: Response): Promise<void> => {
   try {
     const bookExists = await Book.findByPk(req.body.isbn);
-    if (bookExists) {
+        if (bookExists) {
       res.status(400).json({ message: 'Book already exists' });
       return;
     }

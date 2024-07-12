@@ -34,7 +34,7 @@ export const useApi = () => {
   };
 
   const saveData = async (params: ApiRequestParams) => {
-    const { method, url, queryParams = "", payload = null } = params;
+    const { method, url, queryParams = "", payload = {} } = params;
     try {
       const response = await axios({
         method,
@@ -48,8 +48,7 @@ export const useApi = () => {
       setResponseData(response.data);
       return response.data;
     } catch (error: any) {
-    //   showBoundary(error);
-    //   throw error;
+      console.error("Error in saveData:" ,error)
     }
   };
 

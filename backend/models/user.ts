@@ -1,11 +1,15 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/db';
+import Book from './book';
 
 class User extends Model {
   public id!: string;
   public username!: string;
   public password!: string;
   public role!: 'admin' | 'user';
+
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 User.init({

@@ -20,4 +20,11 @@ router.patch('/change-password', userController.changePassword);
 router.post('/validate-password', userController.validatePassword);
 
 
+router.post('/:userId/borrow/:bookId', userController.borrowBook);
+
+router.post('/:userId/return/:bookId', userController.returnBook);
+
+router.get('/:userId/borrowed-books', userController.getBorrowedBooks);
+
+
 export default router;

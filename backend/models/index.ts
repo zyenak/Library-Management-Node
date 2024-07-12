@@ -1,7 +1,8 @@
-import * as userModel from './user';
-import * as bookModel from './book'
+import User from './user';
+import Book from './book';
 
-export {
-  userModel,
-  bookModel
-};
+// Define associations
+User.belongsToMany(Book, { through: 'UserBooks', as: 'borrowedBooks' });
+Book.belongsToMany(User, { through: 'UserBooks' });
+
+export { User, Book };

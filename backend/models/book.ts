@@ -7,6 +7,9 @@ class Book extends Model {
   public category!: string;
   public price!: number;
   public quantity!: number;
+
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 Book.init({

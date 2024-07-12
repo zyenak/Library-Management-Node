@@ -1,8 +1,9 @@
 
 import { Request, Response } from 'express';
-import User from '../models/user';
+import { User, Book } from '../models';
 import { omit } from 'lodash';
 import bcrypt from 'bcryptjs';
+
 
 interface AuthenticatedRequest extends Request {
   user?: { id: string; role: 'admin' | 'user' };
@@ -129,3 +130,85 @@ export const validatePassword = async (req: AuthenticatedRequest, res: Response)
   }
 };
 
+
+
+export const borrowBook = async (req: Request, res: Response): Promise<void> => {
+  const { userId, bookId } = req.params;
+
+  try {
+    const user = await User.findByPk(userId);
+    const book = await Book.findByPk(bookId);
+
+    if (!user || !book) {
+      res.status(404).json({ message: 'User or book not found' });
+      return;
+    }
+
+    if (book.quantity <= 0) {
+      res.status(400).json({ message: 'Book is out of stock' });
+      return;
+    }
+
+    await (user as any).addBorrowedBook(book); // Use addBorrowedBook method
+
+    book.quantity -= 1;
+    await book.save();
+
+    res.json({ message: 'Book borrowed successfully' });
+  } catch (error) {
+    console.error('Error borrowing book:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+export const returnBook = async (req: Request, res: Response): Promise<void> => {
+  const { userId, bookId } = req.params;
+
+  try {
+    const user = await User.findByPk(userId);
+    const book = await Book.findByPk(bookId);
+
+    if (!user || !book) {
+      res.status(404).json({ message: 'User or book not found' });
+      return;
+    }
+
+    await (user as any).removeBorrowedBook(book); // Use removeBorrowedBook method
+
+    book.quantity += 1;
+    await book.save();
+
+    res.json({ message: 'Book returned successfully' });
+  } catch (error) {
+    console.error('Error returning book:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getBorrowedBooks = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findByPk(userId, {
+      include: [{ model: Book, as: 'borrowedBooks' }],
+    });
+
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    const userWithBorrowedBooks = user as any;
+
+    if (!userWithBorrowedBooks.borrowedBooks) {
+      res.status(404).json({ message: 'Borrowed books not found for the user' });
+      return;
+    }
+
+    res.json(userWithBorrowedBooks.borrowedBooks);
+  } catch (error) {
+    console.error('Error fetching borrowed books:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

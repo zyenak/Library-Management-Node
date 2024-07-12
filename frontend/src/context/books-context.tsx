@@ -13,6 +13,7 @@ export interface Book {
 
 export interface BooksContextType {
   books: Book[];
+  fetchBooks: () => void; 
   setBooks: React.Dispatch<React.SetStateAction<Book[]>>;
   addBook: (newBook: Book) => void;
   updateBook: (updatedBook: Book) => void;
@@ -21,6 +22,7 @@ export interface BooksContextType {
 
 export const BooksContext = createContext<BooksContextType>({
   books: [],
+  fetchBooks: () => {},
   setBooks: () => {},
   addBook: () => {},
   updateBook: () => {},
@@ -33,18 +35,18 @@ export const BooksProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [books, setBooks] = useState<Book[]>([]);
   const { fetchData, saveData, deleteData } = useApi();
 
+  const fetchBooks = async () => {
+    try {
+      const data = await fetchData("/books");
+      setBooks(data);
+    } catch (error) {
+      // Error handling is already done in fetchData
+    }
+  };
   useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const data = await fetchData("/books");
-        setBooks(data);
-      } catch (error) {
-        // Error handling is already done in fetchData
-      }
-    };
-
     fetchBooks();
   }, []);
+
 
   const addBook = async (newBook: Book) => {
     try {
@@ -88,6 +90,7 @@ export const BooksProvider: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const contextValue: BooksContextType = {
+    fetchBooks,
     books,
     setBooks,
     addBook,

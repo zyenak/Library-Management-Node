@@ -40,7 +40,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [users, setUsers] = useState<User[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [borrowedBooks, setBorrowedBooks] = useState<Book[]>([]);
-  const { books, setBooks } = useContext<BooksContextType>(BooksContext);
+  const { books, setBooks, fetchBooks } = useContext<BooksContextType>(BooksContext);
   const { showMessage } = useSnackbar();
   const { fetchData, saveData, deleteData } = useApi();
 
@@ -70,21 +70,37 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         url: "/auth/login",
         payload: { username, password },
       });
-
+  
       localStorage.setItem("token", data.token);
-
+  
       showMessage("Logged in successfully");
-
-      console.log
-      // Use data.id, data.username, data.role to set user information
-      setUser({ id: data.id, username: data.username, role: data.role, borrowedBooks: data.borrowedBooks || [] });
-      setBorrowedBooks(data.borrowedBooks || []);
-      localStorage.setItem("user", JSON.stringify({ id: data.id, username: data.username, role: data.role, borrowedBooks: data.borrowedBooks }));
-
+  
+      // Fetch borrowed books for the logged-in user
+      const borrowedBooksData = await fetchData(`/users/${data.id}/borrowed-books`);
+  
+      // Update state with received user data including borrowedBooks
+      setUser({
+        id: data.id,
+        username: data.username,
+        role: data.role,
+        borrowedBooks: borrowedBooksData || [],
+      });
+  
+      setBorrowedBooks(borrowedBooksData || []);
+  
+      // Save user data to localStorage
+      localStorage.setItem("user", JSON.stringify({
+        id: data.id,
+        username: data.username,
+        role: data.role,
+        borrowedBooks: borrowedBooksData || [],
+      }));
+  
     } catch (error) {
       showMessage("Failed to login");
     }
   };
+  
 
   const logoutUser = () => {
     setUser(null);
@@ -94,54 +110,46 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     showMessage("Logged out successfully");
   };
 
-  const borrowBook = (isbn: string) => {
-    const bookToBorrow = books.find((book: Book) => book.isbn === isbn);
-    if (bookToBorrow && bookToBorrow.quantity > 0) {
-      const updatedBook = { ...bookToBorrow, quantity: bookToBorrow.quantity - 1 };
-      setBooks((prevBooks: Book[]) =>
-        prevBooks.map((book: Book) =>
-          book.isbn === isbn ? updatedBook : book
-        )
-      );
-
-      setUser((prevUser: User | null) => {
-        const updatedBorrowedBooks = [...(prevUser?.borrowedBooks || []), bookToBorrow];
-        setBorrowedBooks(updatedBorrowedBooks);
-
-        const updatedUser = { ...prevUser!, borrowedBooks: updatedBorrowedBooks };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        return updatedUser;
+  const borrowBook = async (isbn: string) => {
+    try {
+      const response = await saveData({
+        method: "POST",
+        url: `/users/${user?.id}/borrow/${isbn}`,
       });
-      showMessage("Book borrowed successfully");
-    } else {
-      showMessage("Book not available for borrowing");
+  
+        const borrowedBooksData = await fetchData(`/users/${user?.id}/borrowed-books`);
+  
+        // Update state with received user data including borrowedBooks
+        const updatedUser = { ...user!, borrowedBooks: borrowedBooksData || [] };
+        setUser(updatedUser);
+        setBorrowedBooks(updatedUser.borrowedBooks);
+        showMessage("Book borrowed successfully");
+        fetchBooks();
+     
+    } catch (error) {
+
+      console.error("Error in borrwoing book:" ,error)
+      showMessage("Failed to borrow book");
     }
   };
+  
 
-  const returnBook = (isbn: string) => {
-    const indexToRemove = borrowedBooks.findIndex((book) => book.isbn === isbn);
-    if (indexToRemove !== -1) {
-      setBooks((prevBooks: Book[]) =>
-        prevBooks.map((book: Book) =>
-          book.isbn === isbn
-            ? { ...book, quantity: book.quantity + 1 }
-            : book
-        )
-      );
-
-      const updatedBorrowedBooks = [...borrowedBooks];
-      updatedBorrowedBooks.splice(indexToRemove, 1);
-      setBorrowedBooks(updatedBorrowedBooks);
-
-      setUser((prevUser: User | null) => {
-        const updatedUser = { ...prevUser!, borrowedBooks: updatedBorrowedBooks };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        return updatedUser;
+  const returnBook = async (isbn: string) => {
+    try {
+      const response = await saveData({
+        method: "POST",
+        url: `/users/${user?.id}/return/${isbn}`,
       });
 
-      showMessage("Book returned successfully");
-    } else {
-      showMessage("Book not found in borrowed list");
+        const updatedBorrowedBooks = user!.borrowedBooks.filter((book) => book.isbn !== isbn);
+        const updatedUser = { ...user!, borrowedBooks: updatedBorrowedBooks };
+        setUser(updatedUser);
+        setBorrowedBooks(updatedBorrowedBooks);
+        showMessage("Book returned successfully");
+        fetchBooks();
+      
+    } catch (error) {
+      showMessage("Failed to return book");
     }
   };
 
