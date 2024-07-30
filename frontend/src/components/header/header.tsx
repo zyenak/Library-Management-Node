@@ -12,19 +12,16 @@ import {
   Tooltip,
   MenuItem,
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AdbIcon from "@mui/icons-material/Adb";
 import { useUser } from "../../context/user-context";
-import { ChangePasswordDialog } from "../change-password/change-password";
-import { useApi } from "../../hooks/useApi";
 import { useSnackbar } from "../../context/snackbar-context";
 
 const AppHeader: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const [openChangePasswordDialog, setOpenChangePasswordDialog] = useState(false);
   const { user, logoutUser } = useUser();
   const { showMessage } = useSnackbar();
-  const { saveData } = useApi();
+  const navigate = useNavigate();
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
@@ -40,27 +37,8 @@ const AppHeader: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => 
   };
 
   const handleChangePasswordClick = () => {
-    setOpenChangePasswordDialog(true);
+    navigate("/user/change-password");
     handleCloseUserMenu();
-  };
-
-  const handleCloseChangePasswordDialog = () => {
-    setOpenChangePasswordDialog(false);
-  };
-
-  const handleSubmitChangePassword = async (currentPassword: string, newPassword: string, confirmPassword: string) => {
-    try {
-      const data = await saveData({
-        method: "PATCH",
-        url: "/users/change-password",
-        payload: { currentPassword, newPassword, confirmPassword },
-      });
-  
-      showMessage(data.message);
-      handleCloseChangePasswordDialog();
-    } catch (error: any) {
-      showMessage(error.message || "Failed to change password");
-    }
   };
 
   return (
@@ -108,9 +86,11 @@ const AppHeader: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => 
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  <MenuItem onClick={handleChangePasswordClick}>
-                    <Typography textAlign="center">Change Password</Typography>
-                  </MenuItem>
+                  {user.role !== "admin" && (
+                    <MenuItem onClick={handleChangePasswordClick}>
+                      <Typography textAlign="center">Change Password</Typography>
+                    </MenuItem>
+                  )}
                   <MenuItem onClick={handleLogout}>
                     <Typography textAlign="center">Logout</Typography>
                   </MenuItem>
@@ -127,11 +107,6 @@ const AppHeader: React.FC<{ onLoginClick: () => void }> = ({ onLoginClick }) => 
           </Box>
         </Toolbar>
       </Container>
-      <ChangePasswordDialog
-        open={openChangePasswordDialog}
-        handleClose={handleCloseChangePasswordDialog}
-        handleSubmit={handleSubmitChangePassword}
-      />
     </AppBar>
   );
 };

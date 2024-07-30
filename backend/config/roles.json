@@ -1,0 +1,22 @@
+{
+    "roles": [
+      {
+        "name": "admin",
+        "permissions": [
+          "add_book",
+          "update_book",
+          "delete_book",
+          "add_user",
+          "read_users",
+          "delete_user"
+        ]
+      },
+      {
+        "name": "user",
+        "permissions": [
+          "change_password"
+        ]
+      }
+    ]
+  }
+  

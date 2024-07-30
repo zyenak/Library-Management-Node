@@ -13,6 +13,8 @@ import EditBookFormContainer from "./containers/edit-book";
 import { SnackbarProvider } from "./context/snackbar-context";
 import { ErrorBoundary } from 'react-error-boundary';
 import { ErrorBombFallback } from './components/fallbacks/error';
+import WithUserOnlyProtector from "./middleware/user-protector";
+import ChangePasswordPage from "./containers/change-password";
 
 const publicRoutes = [
   { path: "/", element: <Dashboard /> },
@@ -32,6 +34,19 @@ const privateRoutes = [
       { path: "books/add", element: <BookFormContainer /> },
       { path: "users/add", element: <UserFormContainer /> },
       { path: "books/:bookIsbn/edit", element: <EditBookFormContainer /> },
+    ],
+  },
+  {
+    path: "user",
+    element: (
+      <WithLoginProtector>
+        <WithUserOnlyProtector>
+        <Outlet />
+        </WithUserOnlyProtector>
+      </WithLoginProtector>
+    ),
+    children: [
+      { path: "change-password", element: <ChangePasswordPage /> },
     ],
   },
 ];
